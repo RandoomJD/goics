@@ -21,23 +21,23 @@ const (
 func NewComponent() *Component {
 	return &Component{
 		Elements:   make([]Componenter, 0),
-		Properties: make(map[string]string),
+		Properties: make(map[string][]string),
 	}
 }
 
 // Component is the base type for holding a
-// ICal datatree before serilizing it
+// ICal datatree before serializing it
 type Component struct {
 	Tipo       string
 	Elements   []Componenter
-	Properties map[string]string
+	Properties map[string][]string
 }
 
 // Writes the component to the Writer
 func (c *Component) Write(w *ICalEncode) {
 	w.WriteLine("BEGIN:" + c.Tipo + CRLF)
 
-	// Iterate over component properites
+	// Iterate over component properties
 	var keys []string
 	for k := range c.Properties {
 		keys = append(keys, k)
@@ -45,7 +45,7 @@ func (c *Component) Write(w *ICalEncode) {
 	sort.Strings(keys)
 	for _, key := range keys {
 		val := c.Properties[key]
-		w.WriteLine(WriteStringField(key, val))
+		w.WriteLine(WriteStringField(key, val...))
 	}
 
 	for _, xc := range c.Elements {
@@ -68,12 +68,12 @@ func (c *Component) AddComponent(cc Componenter) {
 }
 
 // AddProperty ads a property to the component
-func (c *Component) AddProperty(key string, val string) {
+func (c *Component) AddProperty(key string, val ...string) {
 	c.Properties[key] = val
 }
 
 // ICalEncode is the real writer, that wraps every line,
-// in 75 chars length... Also gets the component from the emmiter
+// in 75 chars length... Also gets the component from the emitter
 // and starts the iteration.
 type ICalEncode struct {
 	w io.Writer
@@ -119,7 +119,7 @@ func (enc *ICalEncode) WriteLine(s string) {
 	}
 }
 
-// FormatDateField returns a formated date: "DTEND;VALUE=DATE:20140406"
+// FormatDateField returns a formatted date: "DTEND;VALUE=DATE:20140406"
 func FormatDateField(key string, val time.Time) (string, string) {
 	return key + ";VALUE=DATE", val.Format("20060102")
 }
@@ -134,9 +134,12 @@ func FormatDateTime(key string, val time.Time) (string, string) {
 	return key, val.UTC().Format("20060102T150405Z")
 }
 
-// WriteStringField UID:asdfasdfаs@dfasdf.com
-func WriteStringField(key string, val string) string {
-	return strings.ToUpper(key) + ":" + quoteString(val) + CRLF
+// WriteStringField UID:asdfasdfаs@dfasdf.com / RRULE:FREQ=WEEKLY;BYDAY=WE;COUNT=4
+func WriteStringField(key string, val ...string) string {
+	for _, s := range val {
+		s = quoteString(s)
+	}
+	return strings.ToUpper(key) + ":" + strings.Join(val, ";") + CRLF
 }
 
 func quoteString(s string) string {

@@ -28,7 +28,7 @@ type Componenter interface {
 	Write(w *ICalEncode)
 	AddComponent(c Componenter)
 	SetType(t string)
-	AddProperty(string, string)
+	AddProperty(string, ...string)
 }
 
 // Calendar holds the base struct for a Component VCALENDAR

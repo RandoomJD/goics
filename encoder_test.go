@@ -16,7 +16,7 @@ func TestComponentCreation(t *testing.T) {
 	c.AddProperty("CALSCAL", "GREGORIAN")
 	c.AddProperty("PRODID", "-//tmpo.io/src/goics")
 
-	if c.Properties["CALSCAL"] != "GREGORIAN" {
+	if c.Properties["CALSCAL"][0] != "GREGORIAN" {
 		t.Error("Error setting property")
 	}
 
